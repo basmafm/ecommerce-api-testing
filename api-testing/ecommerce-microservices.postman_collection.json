@@ -1,0 +1,297 @@
+{
+  "info": {
+    "_postman_id": "e8c1a926-ab7d-4b16-ba1a-4c07bcfb79fa",
+    "name": "ecommerce-microservices",
+    "description": "StartFragment\n\n## Project Overview\n\nThis project demonstrates an End-to-End (E2E) API testing workflow for a simulated ecommerce microservces architecture using public APIs. The tests are executed using Postman and validate the interaction between multiple services such as authentication, product retrieval,and carts service.\n\nThe goal of this project is to verify that the complete user journey—from login to placing an order—works correctly across multiple API endpoints.\n\n## Services Covered\n\nThe collection simulates several microservices typically found in an ecommerce platform:\n\n- **Auth Service** – Handles user authentication and token generation.\n    \n- **Product Service** – Retrieves product information.\n    \n- **Carts Service** – Creates and retrieves order data.\n    \n\n## Variable Chaining\n\nDynamic data from API responses is stored in environment variables and reused in subsequent requests. Examples include:\n\n- base_url\n    \n- user_id\n    \n- product_id\n    \n- search_query\n    \n- cart_id\n    \n\nThis ensures that the requests are connected and simulate a realistic user workflow.\n\n## Tools\n\n- Postman\n    \n- DummyJSON Public API\n    \n\n## Expected Outcome\n\nAll requests should return successful responses and pass validation tests defined in each request script.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52952568",
+    "_collection_link": "https://go.postman.co/collection/52952568-e8c1a926-ab7d-4b16-ba1a-4c07bcfb79fa?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "auth-service",
+      "item": [
+        {
+          "name": "auth/login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "// Validasi response\r",
+                  "pm.test(\"Access token exists\", function () {\r",
+                  "    pm.expect(jsonData.accessToken).to.not.be.undefined;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"User ID exists\", function () {\r",
+                  "    pm.expect(jsonData.id).to.not.be.undefined;\r",
+                  "});\r",
+                  "\r",
+                  "// Save variables for next requests\r",
+                  "pm.environment.set(\"access_token\", jsonData.accessToken);\r",
+                  "pm.environment.set(\"refresh_token\", jsonData.refreshToken);\r",
+                  "pm.environment.set(\"user_id\", jsonData.id);\r",
+                  "\r",
+                  "// Optional logging\r",
+                  "console.log(\"Access Token:\", jsonData.accessToken);\r",
+                  "console.log(\"Refresh Token:\", jsonData.refreshToken);\r",
+                  "console.log(\"User ID:\", jsonData.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"emilys\",\r\n    \"password\": \"emilyspass\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "auth/refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Access token exists\", function () {\r",
+                  "    pm.expect(jsonData.accessToken).to.not.be.undefined;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Refresh token exists\", function () {\r",
+                  "    pm.expect(jsonData.refreshToken).to.not.be.undefined;\r",
+                  "});\r",
+                  "\r",
+                  "// Save tokens to environment\r",
+                  "pm.environment.set(\"access_token\", jsonData.accessToken);\r",
+                  "pm.environment.set(\"refresh_token\", jsonData.refreshToken);\r",
+                  "\r",
+                  "console.log(\"New Access Token:\", jsonData.accessToken);\r",
+                  "console.log(\"New Refresh Token:\", jsonData.refreshToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"order product\",\r\n    \"job\": \"customer\"\r\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "product-service",
+      "item": [
+        {
+          "name": "product/list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "let json = pm.response.json();\r",
+                  "\r",
+                  "let productId = json.products[0].id;\r",
+                  "pm.environment.set(\"product_id\", productId);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "product/search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "// Validate response structure\r",
+                  "pm.test(\"Products list exists\", function () {\r",
+                  "    pm.expect(jsonData.products).to.be.an(\"array\");\r",
+                  "});\r",
+                  "\r",
+                  "// Validate search result\r",
+                  "pm.test(\"Search returned results\", function () {\r",
+                  "    pm.expect(jsonData.total).to.be.above(0);\r",
+                  "});\r",
+                  "\r",
+                  "// Save first product id for next request\r",
+                  "if(jsonData.products.length > 0){\r",
+                  "    pm.environment.set(\"product_id\", jsonData.products[0].id);\r",
+                  "}\r",
+                  "\r",
+                  "console.log(\"First Product ID:\", pm.environment.get(\"product_id\"));"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/search?q={{search_query}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "products",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "{{search_query}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "carts-service",
+      "item": [
+        {
+          "name": "carts/add",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Order created\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "let json = pm.response.json();\r",
+                  "\r",
+                  "pm.environment.set(\"cart_id\", json.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"userId\": {{user_id}},\r\n    \"products\":[\r\n        {\r\n            \"id\": {{product_id}},\r\n            \"quantity\": 1\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/carts/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "carts",
+                "add"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
